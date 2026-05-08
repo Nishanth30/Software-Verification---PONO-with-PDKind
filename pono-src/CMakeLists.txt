@@ -78,8 +78,9 @@ endif()
 
 find_package(FLEX 2.6.4 REQUIRED)
 if(NOT FLEX_INCLUDE_DIRS)
-  message(FATAL_ERROR "Missing flex headers")
+  set(FLEX_INCLUDE_DIRS /opt/homebrew/opt/flex/include)
 endif()
+message(STATUS "FLEX_INCLUDE_DIRS: ${FLEX_INCLUDE_DIRS}")
 
 if(NOT DEFINED SMT_SWITCH_DIR)
   set(SMT_SWITCH_DIR "${PROJECT_SOURCE_DIR}/deps/smt-switch")
@@ -190,21 +191,21 @@ else()
   message(FATAL_ERROR "Missing Btor2Tools library -- try running ./contrib/setup-btor2tools.sh")
 endif()
 
-# Generate the SMV parser using Flex/Bison
-bison_target(
-  SMVParser
-  ${PROJECT_SOURCE_DIR}/frontends/smvparser.y
-  ${CMAKE_CURRENT_BINARY_DIR}/smvparser.cpp
-  DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/smvparser.h
-)
-
-flex_target(
-  SMVScanner
-  ${PROJECT_SOURCE_DIR}/frontends/smvparser.l
-  ${CMAKE_CURRENT_BINARY_DIR}/smvlexer.cpp
-)
-
-add_flex_bison_dependency(SMVScanner SMVParser)
+# Generate the SMV parser using Flex/Bison (disabled for BTOR2-only build)
+# bison_target(
+#   SMVParser
+#   ${PROJECT_SOURCE_DIR}/frontends/smvparser.y
+#   ${CMAKE_CURRENT_BINARY_DIR}/smvparser.cpp
+#   DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/smvparser.h
+# )
+# 
+# flex_target(
+#   SMVScanner
+#   ${PROJECT_SOURCE_DIR}/frontends/smvparser.l
+#   ${CMAKE_CURRENT_BINARY_DIR}/smvlexer.cpp
+# )
+# 
+# add_flex_bison_dependency(SMVScanner SMVParser)
 
 set(
   INCLUDE_DIRS
@@ -244,12 +245,13 @@ set(
   "${PROJECT_SOURCE_DIR}/engines/interp_seq_mc.cpp"
   "${PROJECT_SOURCE_DIR}/engines/kinduction.cpp"
   "${PROJECT_SOURCE_DIR}/engines/kliveness.cpp"
+  "${PROJECT_SOURCE_DIR}/engines/pdk_ind.cpp"
   "${PROJECT_SOURCE_DIR}/engines/mbic3.cpp"
   "${PROJECT_SOURCE_DIR}/engines/syguspdr.cpp"
   "${PROJECT_SOURCE_DIR}/frontends/btor2_encoder.cpp"
-  "${PROJECT_SOURCE_DIR}/frontends/smv_encoder.cpp"
-  "${PROJECT_SOURCE_DIR}/frontends/smv_node.cpp"
-  "${PROJECT_SOURCE_DIR}/frontends/vmt_encoder.cpp"
+  #"${PROJECT_SOURCE_DIR}/frontends/smv_encoder.cpp"
+  #"${PROJECT_SOURCE_DIR}/frontends/smv_node.cpp"
+  #"${PROJECT_SOURCE_DIR}/frontends/smvscanner.h"
   "${PROJECT_SOURCE_DIR}/modifiers/array_abstractor.cpp"
   "${PROJECT_SOURCE_DIR}/modifiers/control_signals.cpp"
   "${PROJECT_SOURCE_DIR}/modifiers/implicit_predicate_abstractor.cpp"
