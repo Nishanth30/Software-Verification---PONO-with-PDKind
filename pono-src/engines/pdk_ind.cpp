@@ -72,8 +72,10 @@ ProverResult PDKind::check_until(int k)
 
     // ---- Base check --------------------------------------------------------
     // Check SAT( I ^ T^i ^ ~P_i ).  T(0)...T(i-1) are already in background.
+    // On SAT the context stays pushed so compute_witness can read the model.
     if (base_check(i)) {
       compute_witness();
+      solver_->pop();
       return ProverResult::FALSE;
     }
 
@@ -117,6 +119,10 @@ ProverResult PDKind::check_until(int k)
 // Base check: SAT( I(s0) ^ T(s0,s1) ^ ... ^ T(s_{k-1},sk) ^ ~P(sk) )
 // T(0)...T(k-1) are already in the permanent background context.
 // Only I(s0) and bad(k) are pushed into the temporary scope.
+//
+// Contract: on SAT the context is left pushed so compute_witness() can
+// read the model.  Caller must pop after handling the counterexample.
+// On UNSAT the context is popped before returning false.
 // ---------------------------------------------------------------------------
 bool PDKind::base_check(int k)
 {
@@ -126,10 +132,13 @@ bool PDKind::base_check(int k)
   solver_->assert_formula(unroller_.at_time(bad_, k));
 
   Result res = solver_->check_sat();
-  bool cex_found = res.is_sat();
 
+  if (res.is_sat()) {
+    // Leave context pushed — caller reads the model via compute_witness().
+    return true;
+  }
   solver_->pop();
-  return cex_found;
+  return false;
 }
 
 // ---------------------------------------------------------------------------
