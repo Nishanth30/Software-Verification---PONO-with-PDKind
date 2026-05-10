@@ -181,14 +181,10 @@ def main():
      no single-literal constraint can block it. The full PDKind algorithm
      handles this via a 'prophecy' mechanism not yet implemented.
 
-  2. UNTIMED LEMMA ASSERTION: Lemmas are asserted as untimed formulas over
-     the original state variables. The timed unrolling uses renamed variables
-     (v@0, v@1, ...), so untimed lemmas do not directly constrain timed states.
-     A complete implementation would unroll each lemma at every depth.
-
-  3. INCOMPLETE PROOF ON uvw/xp2: Due to limitation (1), PDKind cannot prove
-     uvw_example or xp2 within k=20, while standard k-induction proves uvw_example.
-     This is an implementation gap, not a fundamental algorithmic failure.
+  2. INCOMPLETE PROOF ON xp2: xp2 requires a proof depth beyond k=20 and/or
+     non-trivial lemma strengthening (see limitation 1). Both k-induction and
+     PDKind report UNKNOWN within the current bound. Increasing -k or adding
+     the prophecy generalisation would address this.
   """)
 
 if __name__ == "__main__":

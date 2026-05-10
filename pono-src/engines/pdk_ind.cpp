@@ -68,6 +68,11 @@ ProverResult PDKind::check_until(int k)
     // Both base_check and inductive_check rely on this background context.
     if (i > 0) {
       solver_->assert_formula(unroller_.at_time(ts_.trans(), i - 1));
+      // Stamp all accumulated lemmas at the new frontier time step so they
+      // constrain timed variables (v@i) rather than floating untimed.
+      for (const auto & lem : lemmas_) {
+        solver_->assert_formula(unroller_.at_time(lem, i));
+      }
     }
 
     // ---- Base check --------------------------------------------------------
@@ -102,9 +107,11 @@ ProverResult PDKind::check_until(int k)
       lemmas_.push_back(lemma);
       logger.log(2, "PDKind: new lemma at k={}: {}", i, lemma->to_string());
 
-      // Assert the lemma permanently in the background solver context so it
-      // strengthens every future base and inductive query.
-      solver_->assert_formula(lemma);
+      // Stamp the new lemma at every time step already in the background so it
+      // immediately constrains all timed variable instances (v@0 … v@i).
+      for (int t = 0; t <= i; ++t) {
+        solver_->assert_formula(unroller_.at_time(lemma, t));
+      }
     } else {
       solver_->pop();
     }
