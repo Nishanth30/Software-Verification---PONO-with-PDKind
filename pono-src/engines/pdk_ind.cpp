@@ -63,8 +63,15 @@ ProverResult PDKind::check_until(int k)
   for (int i = 0; i <= k; ++i) {
     logger.log(1, "PDKind checking at bound {}", i);
 
+    // Permanently extend the unrolled transition relation by one step.
+    // T(0)...T(i-2) were asserted in previous iterations and persist.
+    // Both base_check and inductive_check rely on this background context.
+    if (i > 0) {
+      solver_->assert_formula(unroller_.at_time(ts_.trans(), i - 1));
+    }
+
     // ---- Base check --------------------------------------------------------
-    // Check SAT( I ^ T^i ^ ~P_i ).
+    // Check SAT( I ^ T^i ^ ~P_i ).  T(0)...T(i-1) are already in background.
     if (base_check(i)) {
       compute_witness();
       return ProverResult::FALSE;
@@ -108,16 +115,14 @@ ProverResult PDKind::check_until(int k)
 
 // ---------------------------------------------------------------------------
 // Base check: SAT( I(s0) ^ T(s0,s1) ^ ... ^ T(s_{k-1},sk) ^ ~P(sk) )
-// Always pushes and pops internally.
+// T(0)...T(k-1) are already in the permanent background context.
+// Only I(s0) and bad(k) are pushed into the temporary scope.
 // ---------------------------------------------------------------------------
 bool PDKind::base_check(int k)
 {
   solver_->push();
 
   solver_->assert_formula(unroller_.at_time(ts_.init(), 0));
-  for (int j = 0; j < k; ++j) {
-    solver_->assert_formula(unroller_.at_time(ts_.trans(), j));
-  }
   solver_->assert_formula(unroller_.at_time(bad_, k));
 
   Result res = solver_->check_sat();
@@ -129,6 +134,8 @@ bool PDKind::base_check(int k)
 
 // ---------------------------------------------------------------------------
 // Inductive check: SAT( P_0 ^ ... ^ P_{k-1} ^ T^k ^ ~P_k )
+// T(0)...T(k-1) are already in the permanent background context.
+// Only the inductive hypothesis P(s0)...P(s_{k-1}) and bad(k) are pushed.
 //
 // Returns TRUE  (UNSAT) — k-inductive; solver is popped.
 // Returns FALSE (SAT)   — not k-inductive; solver context left pushed so
@@ -141,9 +148,6 @@ bool PDKind::inductive_check(int k)
   Term good = solver_->make_term(Not, bad_);
   for (int j = 0; j < k; ++j) {
     solver_->assert_formula(unroller_.at_time(good, j));
-  }
-  for (int j = 0; j < k; ++j) {
-    solver_->assert_formula(unroller_.at_time(ts_.trans(), j));
   }
   solver_->assert_formula(unroller_.at_time(bad_, k));
 
@@ -192,10 +196,13 @@ TermVec PDKind::extract_cti(int k)
 // ---------------------------------------------------------------------------
 // literal_drop: greedily minimise the CTI cube and return a generalised lemma.
 //
+// T(k-1) is already in the permanent background context; each push scope
+// only needs the subset of CTI literals and bad(k).
+//
 // For each literal cti[i]:
 //   Push a scope with:  kept_literals @ (k-1)
 //                     + {cti[i+1], ..., cti[n-1]} @ (k-1)
-//                     + T(k-1)  +  bad(k)
+//                     + bad(k)          [T(k-1) comes from background]
 //   If UNSAT → cti[i] is essential; keep it.
 //   If SAT   → cti[i] is droppable; skip it.
 //   Pop scope.
@@ -219,8 +226,7 @@ Term PDKind::literal_drop(const TermVec & cti, int k)
       solver_->assert_formula(unroller_.at_time(cti[j], k - 1));
     }
 
-    // One-step reachability: T(k-1 → k) and bad at step k.
-    solver_->assert_formula(unroller_.at_time(ts_.trans(), k - 1));
+    // T(k-1) is already in the permanent background; only assert bad(k).
     solver_->assert_formula(unroller_.at_time(bad_, k));
 
     if (solver_->check_sat().is_unsat()) {
