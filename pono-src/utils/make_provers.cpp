@@ -29,6 +29,7 @@
 #include "engines/interpolantmc.h"
 #include "engines/kinduction.h"
 #include "engines/mbic3.h"
+#include "engines/pdk_ind.h"
 #include "engines/syguspdr.h"
 #ifdef WITH_MSAT_IC3IA
 #include "engines/msat_ic3ia.h"
@@ -77,6 +78,8 @@ shared_ptr<SafetyProver> make_prover(Engine e,
     return make_shared<IC3SA>(p, ts, slv, opts);
   } else if (e == SYGUS_PDR) {
     return make_shared<SygusPdr>(p, ts, slv, opts);
+  } else if (e == PDKIND) {
+    return make_shared<PDKind>(p, ts, slv, opts);
   } else {
     throw PonoException("Unhandled engine");
   }

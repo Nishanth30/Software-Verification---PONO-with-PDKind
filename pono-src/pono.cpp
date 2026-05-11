@@ -25,8 +25,8 @@
 #include "core/fts.h"
 #include "engines/kliveness.h"
 #include "frontends/btor2_encoder.h"
-#include "frontends/smv_encoder.h"
-#include "frontends/vmt_encoder.h"
+//#include "frontends/smv_encoder.h"
+//#include "frontends/vmt_encoder.h"
 #include "modifiers/control_signals.h"
 #include "modifiers/liveness_to_safety_translator.h"
 #include "modifiers/mod_ts_prop.h"
@@ -393,55 +393,8 @@ int main(int argc, char ** argv)
 
     } else if (file_ext == "smv" || file_ext == "vmt" || file_ext == "smt2") {
       logger.log(2, "Parsing SMV/VMT file: {}", pono_options.filename_);
-      RelationalTransitionSystem rts(s);
-      TermVec propvec;
-      if (file_ext == "smv") {
-        SMVEncoder smv_enc(pono_options.filename_, rts);
-        propvec = smv_enc.propvec();
-      } else {
-        assert(file_ext == "vmt" || file_ext == "smt2");
-        VMTEncoder vmt_enc(pono_options.filename_, rts);
-        propvec = vmt_enc.propvec();
-      }
-      unsigned int num_props = propvec.size();
-      if (pono_options.prop_idx_ >= num_props) {
-        throw PonoException(
-            "Property index " + to_string(pono_options.prop_idx_)
-            + " is greater than the number of properties in file "
-            + pono_options.filename_ + " (" + to_string(num_props) + ")");
-      }
-
-      Term prop = propvec[pono_options.prop_idx_];
-      // get property name before it is rewritten
-
-      std::vector<UnorderedTermMap> cex;
-      res = check_prop(pono_options, prop, rts, s, cex);
-      // we assume that a prover never returns 'ERROR'
-      assert(res != ERROR);
-
-      logger.log(
-          0, "Property {} is {}", pono_options.prop_idx_, to_string(res));
-
-      if (res == FALSE) {
-        cout << "sat" << endl;
-        assert(pono_options.witness_ || cex.size() == 0);
-        for (size_t t = 0; t < cex.size(); t++) {
-          cout << "AT TIME " << t << endl;
-          for (auto elem : cex[t]) {
-            cout << "\t" << elem.first << " : " << elem.second << endl;
-          }
-        }
-        assert(pono_options.witness_ || pono_options.vcd_name_.empty());
-        if (!pono_options.vcd_name_.empty()) {
-          VCDWitnessPrinter vcdprinter(rts, cex);
-          vcdprinter.dump_trace_to_file(pono_options.vcd_name_);
-        }
-      } else if (res == TRUE) {
-        cout << "unsat" << endl;
-      } else {
-        assert(res == pono::UNKNOWN);
-        cout << "unknown" << endl;
-      }
+      // SMV/VMT support disabled for BTOR2-only build
+      throw PonoException("SMV/VMT support not compiled. Use BTOR2 files only.");
     } else {
       throw PonoException("Unrecognized file extension " + file_ext
                           + " for file " + pono_options.filename_);
