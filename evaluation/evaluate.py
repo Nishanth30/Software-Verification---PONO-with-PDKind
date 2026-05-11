@@ -6,7 +6,7 @@ Compares:
   - IC3 (mbic3)
 across a suite of BTOR2 benchmarks.
 
-Hierarchy expectation: K-Induction < PDKind <= IC3
+Hierarchy expectation: K-Induction <= PDKind <= IC3
 
 Usage:
     python3 evaluation/evaluate.py
