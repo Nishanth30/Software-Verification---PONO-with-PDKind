@@ -2,3 +2,6 @@ build/
 *.o
 *.csv
 __pycache__/
+evaluation/
+*.csv
+*.log
