@@ -1,0 +1,178 @@
+====================================================================================================
+  PDKind Full Evaluation Report
+  Pono binary : /Users/nishanthd/Documents/GitHub/Software_Verification_PONO_with_PDKind/pono-src/build/pono
+  Samples dir : /Users/nishanthd/Documents/GitHub/Software_Verification_PONO_with_PDKind/pono-src/samples
+  Bound       : 30
+  Timeout     : 45s / engine / benchmark
+  Benchmarks  : 36
+====================================================================================================
+
+  Benchmark                               BMC       IC3IA     PDKind   Gold       PF      Depth     CTIs      Lemmas   PDK(s)   
+  ----------------------------------------------------------------------------------------------------
+  anderson.2.prop1-func-interl            TIMEOUT   TIMEOUT   TIMEOUT  UNKNOWN    N/A     -         0         0        45.00s   
+  array_lt200                             UNKNOWN   UNKNOWN   UNKNOWN  UNKNOWN    N/A     -         9         0        0.55s    
+  bmc-interval-search/count2-large-inter  UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         0         0        0.00s    
+  bmc-interval-search/count2-single-bad-  UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         0         0        0.00s    
+  bmc-interval-search/count2-stall-bad-s  UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         2         0        0.00s    
+  cone-of-influence-reduction/count2-red  UNKNOWN   SAFE      SAFE     SAFE       PASS    3         2         0        0.01s    
+  cone-of-influence-reduction/count2-red  UNKNOWN   SAFE      SAFE     SAFE       PASS    1         0         0        0.00s    
+  cone-of-influence-reduction/count2-red  UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         2         0        0.01s    
+  cone-of-influence-reduction/count9-10-  UNKNOWN   UNKNOWN   UNKNOWN  UNKNOWN    N/A     -         30        0        0.67s    
+  cone-of-influence-reduction/unconstrai  UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         0         0        0.00s    
+  constarrfalse                           UNSAFE    UNKNOWN   UNKNOWN  UNSAFE     MISS    -         14        0        0.08s    
+  constarrtest                            UNKNOWN   UNKNOWN   SAFE     UNKNOWN    N/A     16        1         0        0.01s    
+  int_win                                 UNKNOWN   SAFE      UNKNOWN  SAFE       MISS    -         30        0        0.08s    
+  k-induction/adder-cfg-safe              UNKNOWN   SAFE      UNKNOWN  SAFE       MISS    -         30        1        0.04s    
+  k-induction/cnt-3bits-wrap-safe-kind-b  UNKNOWN   SAFE      SAFE     SAFE       PASS    1         0         0        0.01s    
+  k-induction/cnt-3bits-wrap-safe-kind-b  UNKNOWN   SAFE      SAFE     SAFE       PASS    2         1         1        0.01s    
+  k-induction/pono-test-case-simple-alu-  UNKNOWN   SAFE      UNKNOWN  SAFE       MISS    -         30        0        0.05s    
+  neg_rst_test                            UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         0         0        0.00s    
+  sygus-pdr/bvadd-cond                    UNKNOWN   UNKNOWN   UNKNOWN  UNKNOWN    N/A     -         30        0        0.42s    
+  sygus-pdr/bvadd-simple                  UNKNOWN   UNKNOWN   UNKNOWN  UNKNOWN    N/A     -         30        0        0.11s    
+  sygus-pdr/bvadd                         UNKNOWN   UNKNOWN   UNKNOWN  UNKNOWN    N/A     -         30        0        0.11s    
+  sygus-pdr/cal39                         UNKNOWN   SAFE      UNKNOWN  SAFE       MISS    -         30        0        28.08s   
+  sygus-pdr/mul4                          TIMEOUT   TIMEOUT   TIMEOUT  UNKNOWN    N/A     -         0         0        45.00s   
+  uv_example                              UNKNOWN   SAFE      SAFE     SAFE       PASS    2         1         1        0.01s    
+  uvw_example                             UNKNOWN   SAFE      SAFE     SAFE       PASS    17        16        0        0.04s    
+  xp2                                     UNKNOWN   UNKNOWN   UNKNOWN  UNKNOWN    N/A     -         30        1        0.04s    
+  counter-true                            UNKNOWN   SAFE      SAFE     SAFE       PASS    1         0         0        0.00s    
+  counter                                 UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         9         0        0.01s    
+  dspfilters_fastfir_second-p09           UNKNOWN   TIMEOUT   TIMEOUT  UNKNOWN    N/A     -         0         0        45.00s   
+  mem                                     UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         0         0        0.00s    
+  ridecore                                TIMEOUT   TIMEOUT   TIMEOUT  UNKNOWN    N/A     -         0         0        45.00s   
+  state2input                             UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         0         0        0.00s    
+  sygus-pdr/trans                         UNKNOWN   SAFE      SAFE     SAFE       PASS    1         0         0        0.01s    
+  sygus-pdr/two-cnt-false                 UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         13        0        0.01s    
+  sygus-pdr/two-cnt-true-2                UNKNOWN   SAFE      SAFE     SAFE       PASS    12        11        0        0.01s    
+  sygus-pdr/two-cnt-true                  UNKNOWN   SAFE      SAFE     SAFE       PASS    16        15        0        0.01s    
+
+  PF key:  PASS=correct  MISS=timeout/unknown  FAIL=soundness bug  N/A=no ground truth
+
+====================================================================================================
+  CORRECTNESS CHECK
+====================================================================================================
+  Benchmarks with ground truth   : 25
+  PDKind gave definitive answer  : 20
+    PASS (correct)               : 20
+    FAIL (soundness bug)         : 0
+  Missed (timeout/unknown)       : 5
+  No ground truth available      : 11
+
+  No soundness violations found — PDKind is sound on all checked benchmarks.
+
+====================================================================================================
+  CTI & LEMMA ANALYSIS
+====================================================================================================
+  Benchmarks that generated CTIs : 22
+  Total CTIs extracted           : 366
+  Useful lemmas (non-trivial)    : 4
+  Trivial lemmas ('true')        : 0
+
+  Benchmarks where ALL lemmas were trivially 'true'
+  (literal_drop found no essential literals — bad reachable from any state):
+    array_lt200                               gold=UNKNOWN  CTIs=9
+    bmc-interval-search/count2-stall-bad-state  gold=UNSAFE  CTIs=2
+    cone-of-influence-reduction/count2-redundancy-constraint-bad-unreachable  gold=SAFE  CTIs=2
+    cone-of-influence-reduction/count2-redundancy  gold=UNSAFE  CTIs=2
+    cone-of-influence-reduction/count9-10-combined-redundancy  gold=UNKNOWN  CTIs=30
+    constarrfalse                             gold=UNSAFE  CTIs=14
+    constarrtest                              gold=UNKNOWN  CTIs=1
+    int_win                                   gold=SAFE  CTIs=30
+    k-induction/pono-test-case-simple-alu-no-state-init-enforce-equal  gold=SAFE  CTIs=30
+    sygus-pdr/bvadd-cond                      gold=UNKNOWN  CTIs=30
+    sygus-pdr/bvadd-simple                    gold=UNKNOWN  CTIs=30
+    sygus-pdr/bvadd                           gold=UNKNOWN  CTIs=30
+    sygus-pdr/cal39                           gold=SAFE  CTIs=30
+    uvw_example                               gold=SAFE  CTIs=16
+    counter                                   gold=UNSAFE  CTIs=9
+    sygus-pdr/two-cnt-false                   gold=UNSAFE  CTIs=13
+    sygus-pdr/two-cnt-true-2                  gold=SAFE  CTIs=11
+    sygus-pdr/two-cnt-true                    gold=SAFE  CTIs=15
+
+  NOTE: trivially-true lemmas add no information to the inductive frame.
+  This typically means the property is UNSAFE and every CTI state can
+  reach the bad state — so no generalised blocking clause can be formed.
+
+  Per-benchmark lemma details (benchmarks with CTIs):
+  Benchmark                                 Gold      Verdict    CTIs  Useful  Trivial
+  --------------------------------------------------------------------------------
+  array_lt200                               UNKNOWN   UNKNOWN       9       0        0
+  bmc-interval-search/count2-stall-bad-state  UNSAFE    UNSAFE        2       0        0
+  cone-of-influence-reduction/count2-redundancy-constraint-bad-unreachable  SAFE      SAFE          2       0        0
+  cone-of-influence-reduction/count2-redundancy  UNSAFE    UNSAFE        2       0        0
+  cone-of-influence-reduction/count9-10-combined-redundancy  UNKNOWN   UNKNOWN      30       0        0
+  constarrfalse                             UNSAFE    UNKNOWN      14       0        0
+  constarrtest                              UNKNOWN   SAFE          1       0        0
+  int_win                                   SAFE      UNKNOWN      30       0        0
+  k-induction/adder-cfg-safe                SAFE      UNKNOWN      30       1        0
+  k-induction/cnt-3bits-wrap-safe-kind-bound1  SAFE      SAFE          1       1        0
+  k-induction/pono-test-case-simple-alu-no-state-init-enforce-equal  SAFE      UNKNOWN      30       0        0
+  sygus-pdr/bvadd-cond                      UNKNOWN   UNKNOWN      30       0        0
+  sygus-pdr/bvadd-simple                    UNKNOWN   UNKNOWN      30       0        0
+  sygus-pdr/bvadd                           UNKNOWN   UNKNOWN      30       0        0
+  sygus-pdr/cal39                           SAFE      UNKNOWN      30       0        0
+  uv_example                                SAFE      SAFE          1       1        0
+  uvw_example                               SAFE      SAFE         16       0        0
+  xp2                                       UNKNOWN   UNKNOWN      30       1        0
+  counter                                   UNSAFE    UNSAFE        9       0        0
+  sygus-pdr/two-cnt-false                   UNSAFE    UNSAFE       13       0        0
+  sygus-pdr/two-cnt-true-2                  SAFE      SAFE         11       0        0
+  sygus-pdr/two-cnt-true                    SAFE      SAFE         15       0        0
+
+====================================================================================================
+  LEMMA STABILITY CHECK
+====================================================================================================
+  A 'false negative' (SAFE when gold=UNSAFE) indicates a lemma that
+  incorrectly blocked all counterexample paths — a stability bug.
+
+  No false negatives — lemmas do not cause spurious SAFE results.
+
+====================================================================================================
+  TIMEOUT ANALYSIS
+====================================================================================================
+  Timeouts — BMC    : 3
+  Timeouts — IC3IA  : 4
+  Timeouts — PDKind : 4
+
+  Benchmarks that timed out PDKind:
+    anderson.2.prop1-func-interl                   gold=UNKNOWN   bmc=TIMEOUT   ic3ia=TIMEOUT
+    sygus-pdr/mul4                                 gold=UNKNOWN   bmc=TIMEOUT   ic3ia=TIMEOUT
+    dspfilters_fastfir_second-p09                  gold=UNKNOWN   bmc=UNKNOWN   ic3ia=TIMEOUT
+    ridecore                                       gold=UNKNOWN   bmc=TIMEOUT   ic3ia=TIMEOUT
+
+  These circuits are hard for PDKind at this bound/timeout.
+  Possible causes: large state space, deep counterexamples, or
+  slow CTI generalisation loop in literal_drop().
+
+====================================================================================================
+  PROOF DEPTH DISTRIBUTION (PDKind proved-k-inductive)
+====================================================================================================
+  Benchmark                                      Proved k-inductive
+  ------------------------------------------------------------
+  cone-of-influence-reduction/count2-redundancy-constraint-connection  k=1
+  k-induction/cnt-3bits-wrap-safe-kind-bound0    k=1
+  counter-true                                   k=1
+  sygus-pdr/trans                                k=1
+  k-induction/cnt-3bits-wrap-safe-kind-bound1    k=2
+  uv_example                                     k=2
+  cone-of-influence-reduction/count2-redundancy-constraint-bad-unreachable  k=3
+  sygus-pdr/two-cnt-true-2                       k=12
+  constarrtest                                   k=16
+  sygus-pdr/two-cnt-true                         k=16
+  uvw_example                                    k=17
+
+====================================================================================================
+  FINAL SUMMARY TABLE
+====================================================================================================
+  Total benchmarks             : 36
+  PDKind SAFE                  : 11
+  PDKind UNSAFE                : 10
+  PDKind UNKNOWN               : 11
+  PDKind TIMEOUT               : 4
+  PDKind ERROR                 : 0
+  PASS (vs gold)               : 20
+  FAIL (soundness violations)  : 0
+  Avg PDKind time              : 5.845s
+  Slowest benchmark            : anderson.2.prop1-func-interl (45.00s)
+
+  CSV written  → /Users/nishanthd/Documents/GitHub/Software_Verification_PONO_with_PDKind/evaluation/full_eval_results.csv
