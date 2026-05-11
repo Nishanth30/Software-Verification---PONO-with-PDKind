@@ -27,7 +27,7 @@ import glob
 # Configuration
 # --------------------------------------------------------------------------- #
 
-PONO    = "./build/pono"          # path to binary (run from pono-src/)
+PONO    = "../build/pono"          # path to binary (run from pono-src/)
 BOUND   = 20                      # max unrolling depth for both engines
 TIMEOUT = 60                      # seconds per run
 
