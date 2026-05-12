@@ -1,3 +1,4 @@
+#include <cassert>
 #include "frontends/coreir_encoder.h"
 
 #include <iostream>

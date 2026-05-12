@@ -1,3 +1,4 @@
+#include <cassert>
 /*********************                                                  */
 /*! \file interp_seq_mc.h
  ** \verbatim

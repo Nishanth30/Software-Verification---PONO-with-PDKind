@@ -1,3 +1,4 @@
+#include <cassert>
 /*********************                                                  */
 /*! \file mbic3.cpp
 ** \verbatim

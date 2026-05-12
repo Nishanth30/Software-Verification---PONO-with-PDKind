@@ -1,3 +1,4 @@
+#include <cassert>
 /*********************                                                        */
 /*! \file syntax_analysis_walker.cpp
  ** \verbatim

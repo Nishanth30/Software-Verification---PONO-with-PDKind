@@ -1,3 +1,4 @@
+#include <cassert>
 /*********************                                                  */
 /*! \file ic3ia.cpp
 ** \verbatim

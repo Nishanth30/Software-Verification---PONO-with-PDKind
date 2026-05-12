@@ -1,3 +1,4 @@
+#include <cassert>
 /*********************                                                        */
 /*! \file cegar_ops_uf.cpp
 ** \verbatim

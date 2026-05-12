@@ -14,6 +14,7 @@
  **
  **/
 
+#include <cassert>
 #include "bmc.h"
 
 #include "utils/logger.h"

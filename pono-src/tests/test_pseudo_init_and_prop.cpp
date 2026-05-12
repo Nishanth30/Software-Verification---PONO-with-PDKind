@@ -1,3 +1,4 @@
+#include <cassert>
 #include "core/fts.h"
 #include "core/prop.h"
 #include "core/rts.h"

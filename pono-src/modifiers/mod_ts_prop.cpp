@@ -1,3 +1,4 @@
+#include <cassert>
 /*********************                                                  */
 /*! \file mod_ts_prop.cpp
 ** \verbatim

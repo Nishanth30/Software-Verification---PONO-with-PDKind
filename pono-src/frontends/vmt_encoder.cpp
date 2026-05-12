@@ -1,3 +1,4 @@
+#include <cassert>
 /*********************                                                        */
 /*! \file vmt_encoder.cpp
 ** \verbatim

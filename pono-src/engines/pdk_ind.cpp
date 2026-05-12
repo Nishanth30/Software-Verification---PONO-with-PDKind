@@ -1,3 +1,4 @@
+#include <cassert>
 /*********************                                                        */
 /*! \file pdk_ind.cpp
  ** \verbatim

@@ -1,7 +1,7 @@
 ====================================================================================================
   PDKind Full Evaluation Report
-  Pono binary : /Users/nishanthd/Documents/GitHub/Software_Verification_PONO_with_PDKind/pono-src/build/pono
-  Samples dir : /Users/nishanthd/Documents/GitHub/Software_Verification_PONO_with_PDKind/pono-src/samples
+  Pono binary : /Users/vamsi/Software-Verification---PONO-with-PDKind/pono-src/build/pono
+  Samples dir : /Users/vamsi/Software-Verification---PONO-with-PDKind/pono-src/samples
   Bound       : 30
   Timeout     : 45s / engine / benchmark
   Benchmarks  : 36
@@ -10,41 +10,41 @@
   Benchmark                               BMC       IC3IA     PDKind   Gold       PF      Depth     CTIs      Lemmas   PDK(s)   
   ----------------------------------------------------------------------------------------------------
   anderson.2.prop1-func-interl            TIMEOUT   TIMEOUT   TIMEOUT  UNKNOWN    N/A     -         0         0        45.00s   
-  array_lt200                             UNKNOWN   UNKNOWN   UNKNOWN  UNKNOWN    N/A     -         9         0        0.55s    
-  bmc-interval-search/count2-large-inter  UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         0         0        0.00s    
-  bmc-interval-search/count2-single-bad-  UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         0         0        0.00s    
-  bmc-interval-search/count2-stall-bad-s  UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         2         0        0.00s    
+  array_lt200                             UNKNOWN   UNKNOWN   UNKNOWN  UNKNOWN    N/A     -         9         0        0.89s    
+  bmc-interval-search/count2-large-inter  UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         0         0        0.01s    
+  bmc-interval-search/count2-single-bad-  UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         0         0        0.01s    
+  bmc-interval-search/count2-stall-bad-s  UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         2         0        0.01s    
   cone-of-influence-reduction/count2-red  UNKNOWN   SAFE      SAFE     SAFE       PASS    3         2         0        0.01s    
-  cone-of-influence-reduction/count2-red  UNKNOWN   SAFE      SAFE     SAFE       PASS    1         0         0        0.00s    
+  cone-of-influence-reduction/count2-red  UNKNOWN   SAFE      SAFE     SAFE       PASS    1         0         0        0.01s    
   cone-of-influence-reduction/count2-red  UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         2         0        0.01s    
-  cone-of-influence-reduction/count9-10-  UNKNOWN   UNKNOWN   UNKNOWN  UNKNOWN    N/A     -         30        0        0.67s    
-  cone-of-influence-reduction/unconstrai  UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         0         0        0.00s    
-  constarrfalse                           UNSAFE    UNKNOWN   UNKNOWN  UNSAFE     MISS    -         14        0        0.08s    
-  constarrtest                            UNKNOWN   UNKNOWN   SAFE     UNKNOWN    N/A     16        1         0        0.01s    
-  int_win                                 UNKNOWN   SAFE      UNKNOWN  SAFE       MISS    -         30        0        0.08s    
-  k-induction/adder-cfg-safe              UNKNOWN   SAFE      UNKNOWN  SAFE       MISS    -         30        1        0.04s    
+  cone-of-influence-reduction/count9-10-  UNKNOWN   TIMEOUT   UNKNOWN  UNKNOWN    N/A     -         30        0        0.99s    
+  cone-of-influence-reduction/unconstrai  UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         0         0        0.01s    
+  constarrfalse                           UNSAFE    UNKNOWN   UNKNOWN  UNSAFE     MISS    -         14        0        0.13s    
+  constarrtest                            UNKNOWN   UNKNOWN   SAFE     UNKNOWN    N/A     16        1         0        0.03s    
+  int_win                                 UNKNOWN   SAFE      UNKNOWN  SAFE       MISS    -         30        0        0.13s    
+  k-induction/adder-cfg-safe              UNKNOWN   SAFE      UNKNOWN  SAFE       MISS    -         30        1        0.06s    
   k-induction/cnt-3bits-wrap-safe-kind-b  UNKNOWN   SAFE      SAFE     SAFE       PASS    1         0         0        0.01s    
   k-induction/cnt-3bits-wrap-safe-kind-b  UNKNOWN   SAFE      SAFE     SAFE       PASS    2         1         1        0.01s    
-  k-induction/pono-test-case-simple-alu-  UNKNOWN   SAFE      UNKNOWN  SAFE       MISS    -         30        0        0.05s    
-  neg_rst_test                            UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         0         0        0.00s    
-  sygus-pdr/bvadd-cond                    UNKNOWN   UNKNOWN   UNKNOWN  UNKNOWN    N/A     -         30        0        0.42s    
-  sygus-pdr/bvadd-simple                  UNKNOWN   UNKNOWN   UNKNOWN  UNKNOWN    N/A     -         30        0        0.11s    
-  sygus-pdr/bvadd                         UNKNOWN   UNKNOWN   UNKNOWN  UNKNOWN    N/A     -         30        0        0.11s    
-  sygus-pdr/cal39                         UNKNOWN   SAFE      UNKNOWN  SAFE       MISS    -         30        0        28.08s   
+  k-induction/pono-test-case-simple-alu-  UNKNOWN   SAFE      UNKNOWN  SAFE       MISS    -         30        0        0.09s    
+  neg_rst_test                            UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         0         0        0.01s    
+  sygus-pdr/bvadd-cond                    UNKNOWN   UNKNOWN   UNKNOWN  UNKNOWN    N/A     -         30        0        0.73s    
+  sygus-pdr/bvadd-simple                  UNKNOWN   UNKNOWN   UNKNOWN  UNKNOWN    N/A     -         30        0        0.18s    
+  sygus-pdr/bvadd                         UNKNOWN   UNKNOWN   UNKNOWN  UNKNOWN    N/A     -         30        0        0.18s    
+  sygus-pdr/cal39                         UNKNOWN   SAFE      TIMEOUT  SAFE       MISS    -         0         0        45.00s   
   sygus-pdr/mul4                          TIMEOUT   TIMEOUT   TIMEOUT  UNKNOWN    N/A     -         0         0        45.00s   
   uv_example                              UNKNOWN   SAFE      SAFE     SAFE       PASS    2         1         1        0.01s    
-  uvw_example                             UNKNOWN   SAFE      SAFE     SAFE       PASS    17        16        0        0.04s    
-  xp2                                     UNKNOWN   UNKNOWN   UNKNOWN  UNKNOWN    N/A     -         30        1        0.04s    
-  counter-true                            UNKNOWN   SAFE      SAFE     SAFE       PASS    1         0         0        0.00s    
+  uvw_example                             UNKNOWN   SAFE      SAFE     SAFE       PASS    17        16        0        0.06s    
+  xp2                                     UNKNOWN   UNKNOWN   UNKNOWN  UNKNOWN    N/A     -         30        1        0.06s    
+  counter-true                            UNKNOWN   SAFE      SAFE     SAFE       PASS    1         0         0        0.01s    
   counter                                 UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         9         0        0.01s    
   dspfilters_fastfir_second-p09           UNKNOWN   TIMEOUT   TIMEOUT  UNKNOWN    N/A     -         0         0        45.00s   
-  mem                                     UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         0         0        0.00s    
+  mem                                     UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         0         0        0.01s    
   ridecore                                TIMEOUT   TIMEOUT   TIMEOUT  UNKNOWN    N/A     -         0         0        45.00s   
-  state2input                             UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         0         0        0.00s    
+  state2input                             UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         0         0        0.01s    
   sygus-pdr/trans                         UNKNOWN   SAFE      SAFE     SAFE       PASS    1         0         0        0.01s    
-  sygus-pdr/two-cnt-false                 UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         13        0        0.01s    
-  sygus-pdr/two-cnt-true-2                UNKNOWN   SAFE      SAFE     SAFE       PASS    12        11        0        0.01s    
-  sygus-pdr/two-cnt-true                  UNKNOWN   SAFE      SAFE     SAFE       PASS    16        15        0        0.01s    
+  sygus-pdr/two-cnt-false                 UNSAFE    UNSAFE    UNSAFE   UNSAFE     PASS    -         13        0        0.02s    
+  sygus-pdr/two-cnt-true-2                UNKNOWN   SAFE      SAFE     SAFE       PASS    12        11        0        0.02s    
+  sygus-pdr/two-cnt-true                  UNKNOWN   SAFE      SAFE     SAFE       PASS    16        15        0        0.02s    
 
   PF key:  PASS=correct  MISS=timeout/unknown  FAIL=soundness bug  N/A=no ground truth
 
@@ -63,8 +63,8 @@
 ====================================================================================================
   CTI & LEMMA ANALYSIS
 ====================================================================================================
-  Benchmarks that generated CTIs : 22
-  Total CTIs extracted           : 366
+  Benchmarks that generated CTIs : 21
+  Total CTIs extracted           : 336
   Useful lemmas (non-trivial)    : 4
   Trivial lemmas ('true')        : 0
 
@@ -82,7 +82,6 @@
     sygus-pdr/bvadd-cond                      gold=UNKNOWN  CTIs=30
     sygus-pdr/bvadd-simple                    gold=UNKNOWN  CTIs=30
     sygus-pdr/bvadd                           gold=UNKNOWN  CTIs=30
-    sygus-pdr/cal39                           gold=SAFE  CTIs=30
     uvw_example                               gold=SAFE  CTIs=16
     counter                                   gold=UNSAFE  CTIs=9
     sygus-pdr/two-cnt-false                   gold=UNSAFE  CTIs=13
@@ -110,7 +109,6 @@
   sygus-pdr/bvadd-cond                      UNKNOWN   UNKNOWN      30       0        0
   sygus-pdr/bvadd-simple                    UNKNOWN   UNKNOWN      30       0        0
   sygus-pdr/bvadd                           UNKNOWN   UNKNOWN      30       0        0
-  sygus-pdr/cal39                           SAFE      UNKNOWN      30       0        0
   uv_example                                SAFE      SAFE          1       1        0
   uvw_example                               SAFE      SAFE         16       0        0
   xp2                                       UNKNOWN   UNKNOWN      30       1        0
@@ -131,11 +129,12 @@
   TIMEOUT ANALYSIS
 ====================================================================================================
   Timeouts — BMC    : 3
-  Timeouts — IC3IA  : 4
-  Timeouts — PDKind : 4
+  Timeouts — IC3IA  : 5
+  Timeouts — PDKind : 5
 
   Benchmarks that timed out PDKind:
     anderson.2.prop1-func-interl                   gold=UNKNOWN   bmc=TIMEOUT   ic3ia=TIMEOUT
+    sygus-pdr/cal39                                gold=SAFE      bmc=UNKNOWN   ic3ia=SAFE
     sygus-pdr/mul4                                 gold=UNKNOWN   bmc=TIMEOUT   ic3ia=TIMEOUT
     dspfilters_fastfir_second-p09                  gold=UNKNOWN   bmc=UNKNOWN   ic3ia=TIMEOUT
     ridecore                                       gold=UNKNOWN   bmc=TIMEOUT   ic3ia=TIMEOUT
@@ -167,12 +166,12 @@
   Total benchmarks             : 36
   PDKind SAFE                  : 11
   PDKind UNSAFE                : 10
-  PDKind UNKNOWN               : 11
-  PDKind TIMEOUT               : 4
+  PDKind UNKNOWN               : 10
+  PDKind TIMEOUT               : 5
   PDKind ERROR                 : 0
   PASS (vs gold)               : 20
   FAIL (soundness violations)  : 0
-  Avg PDKind time              : 5.845s
+  Avg PDKind time              : 6.354s
   Slowest benchmark            : anderson.2.prop1-func-interl (45.00s)
 
-  CSV written  → /Users/nishanthd/Documents/GitHub/Software_Verification_PONO_with_PDKind/evaluation/full_eval_results.csv
+  CSV written  → /Users/vamsi/Software-Verification---PONO-with-PDKind/evaluation/full_eval_results.csv

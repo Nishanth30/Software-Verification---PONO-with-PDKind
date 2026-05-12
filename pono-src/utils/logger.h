@@ -47,7 +47,7 @@ struct fmt::formatter<smt::Term>
   }
 
   template <typename FormatContext>
-  auto format(const smt::Term & t, FormatContext & ctx)
+  auto format(const smt::Term & t, FormatContext & ctx) const
   {
     return format_to(ctx.out(), remove_curly_brackets(t->to_string()));
   }
@@ -64,7 +64,7 @@ struct fmt::formatter<smt::Sort>
   }
 
   template <typename FormatContext>
-  auto format(const smt::Sort & s, FormatContext & ctx)
+  auto format(const smt::Sort & s, FormatContext & ctx) const
   {
     return format_to(ctx.out(), remove_curly_brackets(s->to_string()));
   }
@@ -81,7 +81,7 @@ struct fmt::formatter<smt::PrimOp>
   }
 
   template <typename FormatContext>
-  auto format(const smt::PrimOp & po, FormatContext & ctx)
+  auto format(const smt::PrimOp & po, FormatContext & ctx) const
   {
     return format_to(ctx.out(), smt::to_string(po));
   }
@@ -98,7 +98,7 @@ struct fmt::formatter<smt::Op>
   }
 
   template <typename FormatContext>
-  auto format(const smt::Op & o, FormatContext & ctx)
+  auto format(const smt::Op & o, FormatContext & ctx) const
   {
     return format_to(ctx.out(), o.to_string());
   }
@@ -115,7 +115,7 @@ struct fmt::formatter<smt::Result>
   }
 
   template <typename FormatContext>
-  auto format(const smt::Result & r, FormatContext & ctx)
+  auto format(const smt::Result & r, FormatContext & ctx) const
   {
     return format_to(ctx.out(), r.to_string());
   }

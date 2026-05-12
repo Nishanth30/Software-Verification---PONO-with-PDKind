@@ -1,3 +1,4 @@
+#include <cassert>
 /*********************                                                  */
 /*! \file prop_monitor.cpp
 ** \verbatim
