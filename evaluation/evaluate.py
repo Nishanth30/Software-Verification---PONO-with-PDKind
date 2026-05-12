@@ -167,7 +167,7 @@ def main():
 Algorithm       | Proves Safe | Handles CTI | Learns Lemmas | Generalizes | Agnostic
 ---------------------------------------------------------------------------------
 BMC             |      X      |      X      |       X       |      X      |   ✓
-K-Induction     |     ✓* |      X      |       X       |      X      |   ✓
+K-Induction     |     ✓*      |      X      |       X       |      X      |   ✓
 PDKind (Ours)   |      ✓      |      ✓      |       ✓       |   Partial   |   ✓
 IC3 / PDR       |      ✓      |      ✓      |       ✓       |     Full    |   ✓
 ---------------------------------------------------------------------------------
