@@ -5,8 +5,7 @@ Pono Engine Comparison Evaluation Script (Refactored)
 Dynamically discovers all .btor/.btor2 benchmarks and compares:
   - K-Induction (-e ind, -k 20)
   - PDKind      (-e pdkind, -k 20)
-  - BMC         (-e bmc, -k 20) [UNSAFE Gold Standard]
-  - IC3IA       (-e ic3ia, -k 500) [SAFE Gold Standard]
+  - IC3/PDR      (-e mbic3, -k 500) [Gold Standard]
 
 Usage:
     python3 evaluation/evaluate.py
@@ -278,8 +277,8 @@ def main():
     print(f"\n{'='*width}")
     print("  METRICS SUMMARY")
     print(f"{'='*width}")
-    print(f"  K-Induction solved : {kind_solved}/{total} ({100*kind_solved//total if total > 0 else 0}%) [SAFE proofs]")
-    print(f"  K-Induction cex    : {kind_cex}/{total} ({100*kind_cex//total if total > 0 else 0}%) [UNSAFE base cases]")
+    print(f"  K-Induction solved : {kind_solved}/{total} ({100*kind_solved//total if total > 0 else 0}%)")
+    print(f"  K-Induction cex    : {kind_cex}/{total} ({100*kind_cex//total if total > 0 else 0}%)")
     print(f"  PDKind solved      : {pdkind_solved}/{total} ({100*pdkind_solved//total if total > 0 else 0}%)")
     print()
 
