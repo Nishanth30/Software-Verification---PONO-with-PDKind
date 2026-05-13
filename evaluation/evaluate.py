@@ -5,7 +5,8 @@ Pono Engine Comparison Evaluation Script (Refactored)
 Dynamically discovers all .btor/.btor2 benchmarks and compares:
   - K-Induction (-e ind, -k 20)
   - PDKind      (-e pdkind, -k 20)
-  - IC3/PDR      (-e mbic3, -k 500) [Gold Standard]
+  - BMC         (-e bmc, -k 20) [UNSAFE Gold Standard]
+  - IC3IA       (-e ic3ia, -k 500) [SAFE Gold Standard]
 
 Usage:
     python3 evaluation/evaluate.py
@@ -33,17 +34,20 @@ IC3_BOUND  = 500
 TIMEOUT    = 60
 
 ENGINE_RUNS = {
-    "ic3": ("mbic3", IC3_BOUND),
-    "kind": ("ind", KIND_BOUND),
-    "pdkind": ("pdkind", KIND_BOUND),
+    "bmc": ("bmc", KIND_BOUND, ()),
+    "ic3ia": ("ic3ia", IC3_BOUND, ()),
+    "kind": ("ind", KIND_BOUND, ()),
+    "pdkind": ("pdkind", KIND_BOUND, ()),
 }
 
 SOLVED_VERDICTS = ("SAFE", "UNSAFE")
+VERDICT_TOKEN_RE = re.compile(r"\b(?:unsat|sat|unknown)\b")
 
 TABLE_COLUMNS = [
     ("Benchmark", 30),
-    ("Expected(IC3)", 14),
-    ("IC3 Time", 10),
+    ("Expected(Gold)", 14),
+    ("BMC", 8),
+    ("IC3IA", 8),
     ("K-Ind Verdict", 13),
     ("K-Ind Time", 10),
     ("PDK Verdict", 11),
@@ -57,10 +61,26 @@ TABLE_GAP = "  "
 # Runner
 # --------------------------------------------------------------------------- #
 
-def run_engine(engine, benchmark_path, bound, verbosity=2):
+def parse_verdict(stdout: str, stderr: str, returncode: int) -> str:
+    """Return 'SAFE', 'UNSAFE', 'UNKNOWN', or 'ERROR'."""
+    stdout_tokens = set(VERDICT_TOKEN_RE.findall(stdout.lower()))
+    combined = (stdout + stderr).lower()
+    if returncode == 0 and "sat" in stdout_tokens:
+        return "UNSAFE"
+    if returncode == 1 and "unsat" in stdout_tokens:
+        return "SAFE"
+    if "unknown" in combined or returncode == 255:
+        return "UNKNOWN"
+    if returncode not in (0, 1, 255):
+        return "ERROR"
+    return "UNKNOWN"
+
+
+def run_engine(engine, benchmark_path, bound, verbosity=2, extra_args=()):
     """Run pono with the given engine and bound."""
-    cmd = [PONO, "-e", engine, "-k", str(bound), "-v", str(verbosity),
-           benchmark_path]
+    cmd = [PONO, "-e", engine, "-k", str(bound), "-v", str(verbosity)]
+    cmd.extend(extra_args)
+    cmd.append(benchmark_path)
     start = time.perf_counter()
     try:
         proc = subprocess.run(
@@ -68,21 +88,12 @@ def run_engine(engine, benchmark_path, bound, verbosity=2):
             cwd=str(PONO_ROOT)
         )
         elapsed = time.perf_counter() - start
-        # Combine stdout and stderr for parsing
+        # Keep combined output for diagnostics such as lemma counts.
         out = proc.stdout + proc.stderr
     except subprocess.TimeoutExpired:
         return "TIMEOUT", TIMEOUT, 0, 0, ""
 
-    # Parse verdict
-    out_lower = out.lower()
-    if "unsat" in out_lower:
-        verdict = "SAFE"
-    elif "sat" in out_lower and "unsat" not in out_lower:
-        verdict = "UNSAFE"
-    elif "unknown" in out_lower:
-        verdict = "UNKNOWN"
-    else:
-        verdict = "ERROR"
+    verdict = parse_verdict(proc.stdout, proc.stderr, proc.returncode)
 
     # Count lemmas (PDKind-specific diagnostics usually in stderr with -v 2)
     lemma_useful   = len(re.findall(r"PDKind: new lemma at k=", out))
@@ -90,6 +101,21 @@ def run_engine(engine, benchmark_path, bound, verbosity=2):
     lemma_total    = lemma_useful + lemma_trivial
 
     return verdict, elapsed, lemma_total, lemma_useful, out
+
+
+def gold_verdict(ic3ia_v, bmc_v):
+    """
+    Return the best known ground-truth verdict.
+
+    BMC finding a counterexample is definitive for UNSAFE. IC3IA proving the
+    property is definitive for SAFE. If neither gives a definitive answer, the
+    ground truth remains UNKNOWN.
+    """
+    if bmc_v == "UNSAFE":
+        return "UNSAFE"
+    if ic3ia_v == "SAFE":
+        return "SAFE"
+    return "UNKNOWN"
 
 
 def worker_count():
@@ -133,14 +159,17 @@ def format_elapsed(seconds):
 
 def build_result_row(name, results):
     """Build display fields and marker for one completed benchmark."""
-    ic_v, ic_t, _, _, _ = results["ic3"]
+    bmc_v, _, _, _, _ = results["bmc"]
+    ic3ia_v, _, _, _, _ = results["ic3ia"]
     ki_v, ki_t, _, _, _ = results["kind"]
     pk_v, pk_t, pk_tot, pk_use, _ = results["pdkind"]
+    expected = gold_verdict(ic3ia_v, bmc_v)
 
     row = [
         name,
-        ic_v,
-        format_elapsed(ic_t),
+        expected,
+        bmc_v,
+        ic3ia_v,
         ki_v,
         format_elapsed(ki_t),
         pk_v,
@@ -155,51 +184,55 @@ def build_result_row(name, results):
         marker = "  ← PDKind win!"
 
     # Soundness check: Disagrees with ground truth
-    if ic_v in SOLVED_VERDICTS and pk_v in SOLVED_VERDICTS and pk_v != ic_v:
+    if expected in SOLVED_VERDICTS and pk_v in SOLVED_VERDICTS and pk_v != expected:
         marker = "  ← FAIL (Soundness Bug!)"
 
     return row, marker
 
 
+def run_benchmark(name, path):
+    """Run every configured engine for one benchmark."""
+    results = {}
+    for engine_key, (engine, bound, extra_args) in ENGINE_RUNS.items():
+        results[engine_key] = run_engine(engine, path, bound, extra_args=extra_args)
+    return name, results
+
+
 def run_parallel_benchmarks(benchmarks):
-    """Run all engine/benchmark jobs concurrently and print rows as they finish."""
-    results_by_benchmark = {
-        index: {"name": name, "results": {}}
-        for index, (name, _) in enumerate(benchmarks)
-    }
+    """Run benchmarks concurrently and print each row as soon as it finishes."""
     pdkind_solved = 0
     kind_solved = 0
+    kind_cex = 0
 
     with ThreadPoolExecutor(max_workers=worker_count()) as executor:
         future_to_job = {}
-        for index, (_, path) in enumerate(benchmarks):
-            for engine_key, (engine, bound) in ENGINE_RUNS.items():
-                future = executor.submit(run_engine, engine, path, bound)
-                future_to_job[future] = (index, engine_key)
+        for name, path in benchmarks:
+            future = executor.submit(run_benchmark, name, path)
+            future_to_job[future] = name
 
         for future in as_completed(future_to_job):
-            index, engine_key = future_to_job[future]
-            benchmark = results_by_benchmark[index]
-
             try:
-                benchmark["results"][engine_key] = future.result()
+                name, results = future.result()
             except Exception as exc:
-                benchmark["results"][engine_key] = ("ERROR", 0.0, 0, 0, str(exc))
+                name = future_to_job[future]
+                results = {
+                    engine_key: ("ERROR", 0.0, 0, 0, str(exc))
+                    for engine_key in ENGINE_RUNS
+                }
 
-            if len(benchmark["results"]) != len(ENGINE_RUNS):
-                continue
-
-            row, marker = build_result_row(benchmark["name"], benchmark["results"])
+            row, marker = build_result_row(name, results)
             print(format_table_row(row) + marker, flush=True)
 
-            ki_v = benchmark["results"]["kind"][0]
-            pk_v = benchmark["results"]["pdkind"][0]
+            ki_v = results["kind"][0]
+            pk_v = results["pdkind"][0]
             if pk_v in SOLVED_VERDICTS:
                 pdkind_solved += 1
-            if ki_v in SOLVED_VERDICTS:
+            if ki_v == "SAFE":
                 kind_solved += 1
+            if ki_v == "UNSAFE":
+                kind_cex += 1
 
-    return kind_solved, pdkind_solved
+    return kind_solved, kind_cex, pdkind_solved
 
 # --------------------------------------------------------------------------- #
 # Main
@@ -230,7 +263,7 @@ def main():
     )
     width = max(135, table_width + 24)
     print(f"\n{'='*width}")
-    print(f"  Pono Engine Comparison   (K-Ind/PDKind Bound={KIND_BOUND}, IC3 Bound={IC3_BOUND}, Timeout={TIMEOUT}s)")
+    print(f"  Pono Engine Comparison   (K-Ind/PDKind Bound={KIND_BOUND}, IC3IA Bound={IC3_BOUND}, Timeout={TIMEOUT}s)")
     print(f"{'='*width}\n")
 
     hdr = [header for header, _ in TABLE_COLUMNS]
@@ -238,14 +271,15 @@ def main():
     print("  " + "-"*(width-4))
 
     # 3. Execution
-    kind_solved, pdkind_solved = run_parallel_benchmarks(benchmarks)
+    kind_solved, kind_cex, pdkind_solved = run_parallel_benchmarks(benchmarks)
 
     # 4. Metrics Summary
     total = len(benchmarks)
     print(f"\n{'='*width}")
     print("  METRICS SUMMARY")
     print(f"{'='*width}")
-    print(f"  K-Induction solved : {kind_solved}/{total} ({100*kind_solved//total if total > 0 else 0}%)")
+    print(f"  K-Induction solved : {kind_solved}/{total} ({100*kind_solved//total if total > 0 else 0}%) [SAFE proofs]")
+    print(f"  K-Induction cex    : {kind_cex}/{total} ({100*kind_cex//total if total > 0 else 0}%) [UNSAFE base cases]")
     print(f"  PDKind solved      : {pdkind_solved}/{total} ({100*pdkind_solved//total if total > 0 else 0}%)")
     print()
 
