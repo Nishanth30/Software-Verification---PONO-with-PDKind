@@ -124,13 +124,13 @@ def main():
         row = [
             name[:30], 
             expected, 
+            f"{ic_t:.2f}s",
             ki_v, 
             f"{ki_t:.2f}s", 
             pk_v, 
             f"{pk_t:.2f}s", 
             str(pk_tot), 
             str(pk_use), 
-            f"{ic_t:.2f}s"
         ]
         
         # Statistics
