@@ -22,7 +22,7 @@
  **     TRUE    — UNSAT (proved k-inductive); solver context popped.
  **     FALSE   — SAT (CTI exists); context left PUSHED so extract_cti() can
  **               read get_value(); caller must pop before calling literal_drop().
- **     UNKNOWN — solver returned indeterminate; context already popped;
+ **     UNKNOWN — solver returned indeterminate; context alreåady popped;
  **               do NOT call extract_cti().
  **
  ** === literal_drop correctness requirement ===

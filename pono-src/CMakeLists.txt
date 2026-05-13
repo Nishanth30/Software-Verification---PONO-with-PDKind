@@ -100,7 +100,7 @@ pkg_check_modules(BITWUZLA REQUIRED bitwuzla)
 
 # --- OVERRIDE SMT-SWITCH CHECK ---
 # Manually setting paths because automated find_path fails on some macOS setups
-set(smt-switch_INCLUDE_DIR "${SMT_SWITCH_DIR}/include" CACHE PATH "Path to smt-switch headers" FORCE)
+set(smt-switch_INCLUDE_DIR "${SMT_SWITCH_DIR}/local/include" CACHE PATH "Path to smt-switch headers" FORCE)
 set(smt-switch_LIB_DIR "${SMT_SWITCH_DIR}/build" CACHE PATH "Path to smt-switch libs" FORCE)
 
 message(STATUS "Manual override: smt-switch_INCLUDE_DIR=${smt-switch_INCLUDE_DIR}")
@@ -263,7 +263,16 @@ if(WITH_BOOLECTOR)
 endif()
 
 target_link_libraries(pono-lib PUBLIC ${Btor2Tools_LIBRARIES})
-target_link_libraries(pono-lib PUBLIC ${BITWUZLA_STATIC_LIBRARIES})
+target_link_libraries(pono-lib PUBLIC "${PROJECT_SOURCE_DIR}/deps/smt-switch/deps/install/lib/libbitwuzla.a")
+target_link_libraries(pono-lib PUBLIC "${PROJECT_SOURCE_DIR}/deps/smt-switch/deps/install/lib/libbitwuzlals.a")
+target_link_libraries(pono-lib PUBLIC "${PROJECT_SOURCE_DIR}/deps/smt-switch/deps/install/lib/libbitwuzlabv.a")
+target_link_libraries(pono-lib PUBLIC "${PROJECT_SOURCE_DIR}/deps/smt-switch/deps/install/lib/libbitwuzlabb.a")
+target_link_libraries(pono-lib PUBLIC "${PROJECT_SOURCE_DIR}/deps/smt-switch/deps/install/lib/libcadical.a")
+target_link_libraries(pono-lib PUBLIC "${PROJECT_SOURCE_DIR}/deps/smt-switch/deps/install/lib/libcvc5.a")
+target_link_libraries(pono-lib PUBLIC "${PROJECT_SOURCE_DIR}/deps/smt-switch/deps/install/lib/libcvc5parser.a")
+target_link_libraries(pono-lib PUBLIC "${PROJECT_SOURCE_DIR}/deps/smt-switch/deps/install/lib/libpicpoly.a")
+target_link_libraries(pono-lib PUBLIC "${PROJECT_SOURCE_DIR}/deps/smt-switch/deps/install/lib/libpicpolyxx.a")
+target_link_libraries(pono-lib PUBLIC mpfr)
 target_link_libraries(pono-lib PUBLIC ${GMPXX_LIBRARIES})
 target_link_libraries(pono-lib PUBLIC pthread)
 

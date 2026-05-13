@@ -133,6 +133,11 @@ ProverResult PDKind::check_until(int k)
 
   for (int i = 0; i <= k; ++i) {
     logger.log(1, "PDKind checking at bound {}", i);
+    // FIX: Enforce environmental constraints at the current time step.
+    // Without this, the solver explores illegal states and finds fake bugs.
+    for (const auto & c : ts_.constraints()) {
+      solver_->assert_formula(unroller_.at_time(c.first, i));
+    }
 
     // Extend the permanent unrolled transition relation by one step.
     // T(0)..T(i-2) persist from prior iterations.
