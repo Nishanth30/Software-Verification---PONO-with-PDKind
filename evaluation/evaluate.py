@@ -97,7 +97,7 @@ def main():
     print(f"{'='*width}\n")
 
     col = [30, 14, 14, 10, 14, 10, 10, 10, 10]
-    hdr = ["Benchmark", "Expected(IC3)", "K-Ind Verdict", "K-Ind Time", "PDK Verdict", "PDK Time", "PDK Lemmas", "PDK Useful", "IC3 Time"]
+    hdr = ["Benchmark", "Expected(IC3)", "IC3 Time", "K-Ind Verdict", "K-Ind Time", "PDK Verdict", "PDK Time", "PDK Lemmas", "PDK Useful"]
     print("  " + "  ".join(h.ljust(col[i]) for i, h in enumerate(hdr)))
     print("  " + "-"*(width-4))
 
