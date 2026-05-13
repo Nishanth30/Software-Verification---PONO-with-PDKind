@@ -89,6 +89,25 @@
  **   Fix: check res.is_sat() explicitly.  On UNKNOWN, pop and return
  **   ProverResult::UNKNOWN; check_until continues but logs the limitation.
  **
+ ** FIX 5 — inductive_check: lazy simple-path constraints (CORRECTNESS / DOMINANCE)
+ **   Root cause: PDKind's inductive_check did not enforce that the k-step trace
+ **   is loop-free (simple path).  Without this, the SAT solver can satisfy the
+ **   inductive query with a CYCLIC trace (s_i = s_j for i≠j) that is not a real
+ **   CTI.  K-Induction adds simple path constraints and thereby proves properties
+ **   that PDKind could not — even though PDKind should be strictly stronger.
+ **
+ **   Empirically: adder-cfg-safe, pono-test-case-simple-alu-*, and
+ **   dspfilters_fastfir_second-p09 were proved SAFE by K-Ind but UNKNOWN/TIMEOUT
+ **   by PDKind because the cyclic-trace CTIs could not be generalised into sound
+ **   lemmas (is_lemma_sound's consecution check always rejected them).
+ **
+ **   Fix: after each SAT result in inductive_check, scan all pairs (a,b) with
+ **   0≤a<b≤k.  If states a and b are identical in the model, assert the
+ **   disjunctive simple-path constraint (≥1 variable must differ) and retry.
+ **   Repeat until UNSAT (proved) or SAT with no cyclic pair (genuine CTI).
+ **   Termination is guaranteed by the finite simple-path structure of any
+ **   finite state machine.
+ **
  ** FIX 4 — lemma deduplication and trivial-lemma filtering (ENHANCEMENT)
  **   The new try_add_lemma() helper skips lemmas that are syntactically
  **   `true` and deduplicates via a string-keyed unordered_set before
@@ -254,6 +273,30 @@ ProverResult PDKind::base_check(int k)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// simple_path_constraint: disjunction that s@i and s@j differ in ≥1 variable.
+//
+// Variables with no update are excluded when both i>0 and j>0 — the same
+// optimisation K-Induction applies.  Such variables hold an unconstrained
+// value at every step, so requiring them to differ is trivially satisfiable
+// and adds no useful information; worse, including them can mask real cycles.
+//
+// Returns false_ when there are no usable variables (caller skips this pair).
+// ─────────────────────────────────────────────────────────────────────────────
+smt::Term PDKind::simple_path_constraint(int i, int j)
+{
+  Term disj = false_;
+  const auto & no_upd = ts_.statevars_with_no_update();
+  for (const auto & v : ts_.statevars()) {
+    if (i > 0 && j > 0 && no_upd.find(v) != no_upd.end()) continue;
+    Term vi  = unroller_.at_time(v, i);
+    Term vj  = unroller_.at_time(v, j);
+    Term neq = solver_->make_term(Not, solver_->make_term(Equal, vi, vj));
+    disj     = solver_->make_term(Or,  disj, neq);
+  }
+  return disj;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // inductive_check: UNSAT( P(s0)^…^P(s_{k-1}) ^ T^k ^ bad(k) )
 //
 // T(0)..T(k-1) and all lemmas at 0..k are in the permanent background.
@@ -265,6 +308,18 @@ ProverResult PDKind::base_check(int k)
 //   on a non-SAT formula, crashing with "cannot get value if not sat".
 //   Now: on UNKNOWN we pop and return ProverResult::UNKNOWN, signalling to
 //   check_until that it must NOT call extract_cti().
+//
+// FIX 5 (SIMPLE PATH): lazy simple-path loop to match K-Induction's power.
+//   Without simple path constraints the check is fooled by cyclic traces
+//   (s_i = s_j for some i≠j) that are not genuine CTIs.  After each SAT
+//   result we scan all pairs (a,b) with 0≤a<b≤k; if states a and b are
+//   identical in the model we assert simple_path_constraint(a,b) and retry.
+//   The loop terminates because the finite state space has finitely many
+//   simple paths.  A SAT result with no cyclic pair is a genuine CTI.
+//
+//   Effect: PDKind now proves everything K-Induction proves (via simple paths
+//   making the check UNSAT) AND potentially more (via lemma strengthening on
+//   genuine CTIs).
 // ─────────────────────────────────────────────────────────────────────────────
 ProverResult PDKind::inductive_check(int k)
 {
@@ -276,22 +331,45 @@ ProverResult PDKind::inductive_check(int k)
   }
   solver_->assert_formula(unroller_.at_time(bad_, k));
 
-  Result res = solver_->check_sat();
+  while (true) {
+    Result res = solver_->check_sat();
 
-  if (res.is_unsat()) {
-    solver_->pop();
-    return ProverResult::TRUE;    // k-inductive — proved
+    if (res.is_unsat()) {
+      solver_->pop();
+      return ProverResult::TRUE;    // k-inductive — proved
+    }
+
+    if (!res.is_sat()) {
+      // UNKNOWN — cannot safely call get_value(); pop and signal.
+      solver_->pop();
+      logger.log(1, "PDKind: inductive_check UNKNOWN at k={} (solver limitation)", k);
+      return ProverResult::UNKNOWN;
+    }
+
+    // SAT — check for simple path violations (cyclic trace).
+    // Scan all pairs (a,b) with 0 ≤ a < b ≤ k in order; add the first
+    // violating pair's constraint and restart.  One constraint per iteration
+    // keeps each retry cheap and mirrors K-Induction's lazy approach.
+    bool added_sp = false;
+    for (int a = 0; a <= k && !added_sp; ++a) {
+      for (int b = a + 1; b <= k; ++b) {
+        Term sp = simple_path_constraint(a, b);
+        if (sp == false_) continue;             // no usable state vars
+        if (solver_->get_value(sp) == false_) { // states a and b identical
+          solver_->assert_formula(sp);
+          added_sp = true;
+          logger.log(2, "PDKind: simple path added for ({},{})", a, b);
+          break;
+        }
+      }
+    }
+
+    if (!added_sp) {
+      // Genuine CTI — no cyclic trace. Leave context pushed for extract_cti().
+      return ProverResult::FALSE;
+    }
+    // else: retry with the added simple path constraint
   }
-
-  if (!res.is_sat()) {
-    // UNKNOWN — cannot safely call get_value(); pop and signal.
-    solver_->pop();
-    logger.log(1, "PDKind: inductive_check UNKNOWN at k={} (solver limitation)", k);
-    return ProverResult::UNKNOWN;
-  }
-
-  // SAT — leave context pushed; caller calls extract_cti() then pops.
-  return ProverResult::FALSE;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

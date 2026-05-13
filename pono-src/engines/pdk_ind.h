@@ -80,6 +80,22 @@ class PDKind : public SafetyProver
   ProverResult inductive_check(int k);
 
   /**
+   * simple_path_constraint — disjunction asserting states at times i and j
+   * differ in at least one state variable.
+   *
+   * Mirrors K-Induction's simple_path_constraint: variables that have no
+   * update in the transition system (and therefore hold an arbitrary constant
+   * value after step 0) are excluded when both i > 0 and j > 0, because
+   * requiring them to differ would produce an unsatisfiable disjunct and
+   * prevent the solver from ever distinguishing the two time-steps via other
+   * variables.
+   *
+   * Returns false_ when there are no usable state variables (caller must
+   * skip this pair rather than asserting false_ into the context).
+   */
+  smt::Term simple_path_constraint(int i, int j);
+
+  /**
    * extract_cti — read model values for all state variables at time k-1.
    *
    * Precondition: solver is in the SAT state left by inductive_check()
