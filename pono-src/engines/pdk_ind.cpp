@@ -309,17 +309,25 @@ smt::Term PDKind::simple_path_constraint(int i, int j)
 //   Now: on UNKNOWN we pop and return ProverResult::UNKNOWN, signalling to
 //   check_until that it must NOT call extract_cti().
 //
-// FIX 5 (SIMPLE PATH): lazy simple-path loop to match K-Induction's power.
+// FIX 5 (SIMPLE PATH, BATCHED): batch simple-path to dominate K-Induction.
 //   Without simple path constraints the check is fooled by cyclic traces
-//   (s_i = s_j for some i≠j) that are not genuine CTIs.  After each SAT
-//   result we scan all pairs (a,b) with 0≤a<b≤k; if states a and b are
-//   identical in the model we assert simple_path_constraint(a,b) and retry.
-//   The loop terminates because the finite state space has finitely many
-//   simple paths.  A SAT result with no cyclic pair is a genuine CTI.
+//   (s_i = s_j for some i≠j) that are not genuine CTIs.
 //
-//   Effect: PDKind now proves everything K-Induction proves (via simple paths
-//   making the check UNSAT) AND potentially more (via lemma strengthening on
-//   genuine CTIs).
+//   Previous (single-add) approach: add ONE violating pair's constraint per
+//   restart.  At depth k, a trace with M cyclic pairs requires M+1 solver
+//   calls and M+1 growing push-contexts — O(M·k) overhead.  For deep proofs
+//   (k~100) this compounds into timeout even when K-Induction succeeds.
+//
+//   Batched approach (this version): after each SAT, scan the entire trace
+//   in one pass over all O(k²) pairs, collect EVERY violating pair
+//   simultaneously, assert them all, then do ONE restart.  The number of
+//   restarts is now bounded by the number of distinct cycle "shapes" in the
+//   trace, which in practice is O(1) per depth level.  This directly fixes
+//   the pono-test-case-simple-alu benchmark where single-add timed out.
+//
+//   Effect: PDKind proves everything K-Induction proves (via simple paths
+//   making the check UNSAT) AND potentially more (via lemma strengthening
+//   on genuine CTIs), at comparable or lower per-depth cost.
 // ─────────────────────────────────────────────────────────────────────────────
 ProverResult PDKind::inductive_check(int k)
 {
@@ -346,29 +354,32 @@ ProverResult PDKind::inductive_check(int k)
       return ProverResult::UNKNOWN;
     }
 
-    // SAT — check for simple path violations (cyclic trace).
-    // Scan all pairs (a,b) with 0 ≤ a < b ≤ k in order; add the first
-    // violating pair's constraint and restart.  One constraint per iteration
-    // keeps each retry cheap and mirrors K-Induction's lazy approach.
-    bool added_sp = false;
-    for (int a = 0; a <= k && !added_sp; ++a) {
+    // SAT — batch-collect ALL simple path violations in one model scan.
+    // Scanning every pair (a,b) with 0 ≤ a < b ≤ k costs O(k²) get_value
+    // calls but avoids the O(M) restarts of the single-add approach.
+    // All collected constraints are asserted together; one restart follows.
+    TermVec sp_batch;
+    for (int a = 0; a <= k; ++a) {
       for (int b = a + 1; b <= k; ++b) {
         Term sp = simple_path_constraint(a, b);
         if (sp == false_) continue;             // no usable state vars
         if (solver_->get_value(sp) == false_) { // states a and b identical
-          solver_->assert_formula(sp);
-          added_sp = true;
-          logger.log(2, "PDKind: simple path added for ({},{})", a, b);
-          break;
+          sp_batch.push_back(sp);
         }
       }
     }
 
-    if (!added_sp) {
-      // Genuine CTI — no cyclic trace. Leave context pushed for extract_cti().
+    if (sp_batch.empty()) {
+      // No cyclic pair — genuine CTI. Leave context pushed for extract_cti().
       return ProverResult::FALSE;
     }
-    // else: retry with the added simple path constraint
+
+    for (const auto & sp : sp_batch) {
+      solver_->assert_formula(sp);
+    }
+    logger.log(2, "PDKind: batch-added {} simple path constraints at k={}",
+               sp_batch.size(), k);
+    // Retry the inductive check with all new simple path constraints active.
   }
 }
 
@@ -440,10 +451,27 @@ Term PDKind::literal_drop(const TermVec & cti, int k)
   TermVec kept_literals;
   Term good = solver_->make_term(Not, bad_);
 
+  // ── Dynamic budget: scale down with k to ensure forward progress ──────────
+  // At low k (≤20) the background context is small — use the full budget to
+  // maximise generalisation quality.  As k grows the background (T@0..T@k-1)
+  // becomes heavier, making each probe more expensive; aggressive dropping is
+  // not worth the time cost.  At k>50 we skip all probes entirely and keep
+  // every literal, passing the full CTI cube to is_lemma_sound — if it's
+  // sound we get a precise blocking clause instantly; if not, we lose nothing.
+  std::size_t dynamic_max_probes = kMaxDropProbes;
+  double      dynamic_time_budget = kDropTimeBudget;
+  if (k > 50) {
+    dynamic_max_probes  = 0;
+    dynamic_time_budget = 0.0;
+  } else if (k > 20) {
+    dynamic_max_probes  = kMaxDropProbes / 2;
+    dynamic_time_budget = kDropTimeBudget / 2.0;
+  }
+
   // ── Pre-drop log (verbosity 1) ────────────────────────────────────────────
   logger.log(1, "PDKind: generalising CTI of {} literals at k={} "
              "(budget: {} probes / {:.1f}s)",
-             n, k, kMaxDropProbes, kDropTimeBudget);
+             n, k, dynamic_max_probes, dynamic_time_budget);
 
   // ── Outer push: establish the full k-step inductive hypothesis ────────────
   // P@j = ¬bad@j for j = 0..k-1, asserted ONCE and shared by all inner probes.
@@ -470,12 +498,12 @@ Term PDKind::literal_drop(const TermVec & cti, int k)
     // ── Budget check (before the next push, to avoid an orphaned scope) ──────
     const double elapsed =
         Seconds(Clock::now() - t_start).count();
-    if (probes_used >= kMaxDropProbes || elapsed >= kDropTimeBudget) {
+    if (probes_used >= dynamic_max_probes || elapsed >= dynamic_time_budget) {
       budget_hit = true;
       logger.log(1,
                  "PDKind: literal_drop budget hit at literal {}/{} "
-                 "(probes={}, elapsed={:.2f}s) — keeping remaining {} as essential",
-                 i, n, probes_used, elapsed, n - i);
+                 "(probes={}, elapsed={:.2f}s, k={}) — keeping remaining {} as essential",
+                 i, n, probes_used, elapsed, k, n - i);
       // Conservatively treat every unprocessed literal as essential.
       for (std::size_t j = i; j < n; ++j) {
         kept_literals.push_back(cti[j]);

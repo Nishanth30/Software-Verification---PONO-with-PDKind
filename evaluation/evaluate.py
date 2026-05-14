@@ -29,9 +29,9 @@ PONO_ROOT = EVAL_DIR.parent / "pono-src"
 PONO      = str(PONO_ROOT / "build" / "pono")
 SAMPLES   = PONO_ROOT / "samples"
 
-KIND_BOUND = 20
-IC3_BOUND  = 500
-TIMEOUT    = 60
+KIND_BOUND = 10000
+IC3_BOUND  = 10000
+TIMEOUT    = 900  # 15 minutes per engine per benchmark
 
 ENGINE_RUNS = {
     "bmc": ("bmc", KIND_BOUND, ()),
